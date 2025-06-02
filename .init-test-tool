@@ -1,0 +1,4 @@
+{
+    "command": "pytest",
+    "working_directory": "/home/kavia/workspace/code-generation/easyeventregister-26704-661847e4/easy_event_register"
+}
