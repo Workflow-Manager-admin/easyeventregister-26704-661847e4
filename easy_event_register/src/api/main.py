@@ -1,9 +1,10 @@
-from fastapi import FastAPI, HTTPException, status, Depends
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional
 import sqlite3
 import os
+
 
 DB_PATH = os.path.join(os.path.dirname(__file__), 'easyeventregister.db')
 
