@@ -18,15 +18,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Database Initialization
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
+
 def init_db():
     conn = get_db()
     cur = conn.cursor()
+    # Create events table
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS events (
@@ -38,6 +41,7 @@ def init_db():
         )
         """
     )
+    # Create registrations table
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS registrations (
@@ -54,15 +58,35 @@ def init_db():
     (count,) = cur.fetchone()
     if count == 0:
         demo_events = [
-            ("Tech Expo 2024", "2024-08-10", "Hall A", "Annual technology showcase."),
-            ("Art Gala", "2024-09-15", "Gallery 2", "Modern art exhibit."),
-            ("Music Fest", "2024-07-01", "Central Park", "Open-air music festival."),
+            (
+                "Tech Expo 2024",
+                "2024-08-10",
+                "Hall A",
+                "Annual technology showcase."
+            ),
+            (
+                "Art Gala",
+                "2024-09-15",
+                "Gallery 2",
+                "Modern art exhibit."
+            ),
+            (
+                "Music Fest",
+                "2024-07-01",
+                "Central Park",
+                "Open-air music festival."
+            ),
         ]
-        cur.executemany("INSERT INTO events (name, date, location, description) VALUES (?, ?, ?, ?)", demo_events)
+        cur.executemany(
+            "INSERT INTO events (name, date, location, description) VALUES (?, ?, ?, ?)",
+            demo_events
+        )
     conn.commit()
     conn.close()
 
+
 init_db()
+
 
 # Event models
 class Event(BaseModel):
@@ -72,6 +96,7 @@ class Event(BaseModel):
     location: str
     description: Optional[str] = None
 
+
 class EventOut(BaseModel):
     id: int
     name: str
@@ -79,9 +104,11 @@ class EventOut(BaseModel):
     location: str
     description: Optional[str] = None
 
+
 class RegisterPayload(BaseModel):
     participant_name: str = Field(..., min_length=1)
     contact_info: str = Field(..., min_length=1)
+
 
 class RegistrationOut(BaseModel):
     id: int
@@ -89,11 +116,13 @@ class RegistrationOut(BaseModel):
     participant_name: str
     contact_info: str
 
+
 # PUBLIC_INTERFACE
 @app.get("/", tags=["Health"])
 def health_check():
     """Health check endpoint."""
     return {"message": "Healthy"}
+
 
 # PUBLIC_INTERFACE
 @app.get("/events", response_model=List[EventOut], tags=["Events"])
@@ -106,8 +135,14 @@ def list_events():
     conn.close()
     return events
 
+
 # PUBLIC_INTERFACE
-@app.post("/events/{event_id}/register", response_model=RegistrationOut, status_code=status.HTTP_201_CREATED, tags=["Registrations"])
+@app.post(
+    "/events/{event_id}/register",
+    response_model=RegistrationOut,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Registrations"]
+)
 def register_for_event(event_id: int, registration: RegisterPayload):
     """Register for an event by event_id."""
     conn = get_db()
@@ -133,8 +168,13 @@ def register_for_event(event_id: int, registration: RegisterPayload):
     conn.close()
     return RegistrationOut(**dict(row))
 
+
 # PUBLIC_INTERFACE
-@app.get("/events/{event_id}/registrations", response_model=List[RegistrationOut], tags=["Registrations"])
+@app.get(
+    "/events/{event_id}/registrations",
+    response_model=List[RegistrationOut],
+    tags=["Registrations"]
+)
 def list_registrations(event_id: int):
     """List all registrations for a specific event."""
     conn = get_db()
